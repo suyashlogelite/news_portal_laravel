@@ -34,7 +34,7 @@
                     <form id="tagsForm" method="POST">
                         @csrf
                         <!-- Hidden field to store category ID for editing -->
-                        <input type="text" id="tagsId" name="tagsId">
+                        <input type="hidden" id="tagsId" name="tagsId">
                         <div class="form-group">
                             <label for="status">Status</label>
                             <select name="tagsStatus" class="form-select" id="tagsStatus">
@@ -64,7 +64,7 @@
                 <div class="card-header">
                     <div class="row p-2">
                         <div class="col-md-12">
-                            <span class="h4">List Of Tags</span>
+                            <span class="h4 text-primary font-weight-bold">List Of Tags</span>
                             <button type="button" id="addTag" class="btn btn-primary add-btn font-weight-bold float-right" data-bs-toggle="modal" data-bs-target="#tagsModal">Add</button>
                         </div>
                     </div>

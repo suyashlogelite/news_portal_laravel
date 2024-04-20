@@ -99,7 +99,7 @@
                 <div class="card-header">
                     <div class="row p-2">
                         <div class="col-md-12">
-                            <span class="h4 font-weight-bold">List Of Users</span>
+                            <span class="h4 text-primary font-weight-bold">List Of Users</span>
                             <button type="button" id="addUser" class="btn btn-primary add-btn font-weight-bold float-right" data-bs-toggle="modal" data-bs-target="#userModal">Add</button>
                         </div>
                     </div>

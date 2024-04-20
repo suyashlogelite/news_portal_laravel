@@ -70,7 +70,7 @@
                 <div class="card-header">
                     <div class="row p-2">
                         <div class="col-md-12">
-                            <span class="h4">List Of Categories</span>
+                            <span class="h4 text-primary font-weight-bold">List Of Categories</span>
                             <button type="button" id="addCategory" class="btn btn-primary add-btn font-weight-bold float-right" data-bs-toggle="modal" data-bs-target="#categoryModal">Add</button>
                         </div>
                     </div>

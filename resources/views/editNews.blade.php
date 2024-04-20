@@ -20,14 +20,13 @@
     </div>
     @endif
 
-
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-header bg-dark">
+                <div class="card-header bg-primary">
                     <div class="row p-2">
                         <div class="col-md-12">
-                            <span class="h4 text-success font-weight-bold">Edit Posts Form</span>
+                            <span class="h4 font-weight-bold">Edit Posts Form</span>
                         </div>
                     </div>
                 </div>
@@ -99,7 +98,7 @@
                                         </div>
                                     </div>
 
-                                    <button type="submit" class="btn btn-success btn-sm form-control font-weight-bold" name="submit">Submit</button>
+                                    <button type="submit" class="btn btn-primary btn-sm form-control font-weight-bold" name="submit">Submit</button>
                                 </form>
 
                             </div>
