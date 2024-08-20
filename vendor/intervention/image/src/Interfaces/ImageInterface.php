@@ -4,12 +4,25 @@ declare(strict_types=1);
 
 namespace Intervention\Image\Interfaces;
 
+use Closure;
 use Countable;
 use Intervention\Image\Encoders\AutoEncoder;
+use Intervention\Image\Exceptions\AnimationException;
 use Intervention\Image\Exceptions\RuntimeException;
+use Intervention\Image\FileExtension;
+use Intervention\Image\Geometry\Bezier;
+use Intervention\Image\Geometry\Circle;
+use Intervention\Image\Geometry\Ellipse;
+use Intervention\Image\Geometry\Line;
+use Intervention\Image\Geometry\Polygon;
+use Intervention\Image\Geometry\Rectangle;
+use Intervention\Image\MediaType;
 use Intervention\Image\Origin;
 use IteratorAggregate;
 
+/**
+ * @extends IteratorAggregate<FrameInterface>
+ */
 interface ImageInterface extends IteratorAggregate, Countable
 {
     /**
@@ -87,7 +100,7 @@ interface ImageInterface extends IteratorAggregate, Countable
      * @throws RuntimeException
      * @return ImageInterface
      */
-    public function save(?string $path = null, ...$options): self;
+    public function save(?string $path = null, mixed ...$options): self;
 
     /**
      * Apply given modifier to current image
@@ -241,7 +254,8 @@ interface ImageInterface extends IteratorAggregate, Countable
      * Return color that is mixed with transparent areas when converting to a format which
      * does not support transparency.
      *
-     * @link https://image.intervention.io/v3/basics/colors#transparency
+     * @deprecated Use configuration options of image manager instead
+     * @throws RuntimeException
      * @return ColorInterface
      */
     public function blendingColor(): ColorInterface;
@@ -250,7 +264,7 @@ interface ImageInterface extends IteratorAggregate, Countable
      * Set blending color will have no effect unless image is converted into a format
      * which does not support transparency.
      *
-     * @link https://image.intervention.io/v3/basics/colors#transparency
+     * @deprecated Use configuration options of image manager instead
      * @param mixed $color
      * @throws RuntimeException
      * @return ImageInterface
@@ -327,6 +341,7 @@ interface ImageInterface extends IteratorAggregate, Countable
     /**
      * Adjust brightness of the current image
      *
+     * @link https://image.intervention.io/v3/modifying/effects#changing-the-brightness
      * @param int $level
      * @throws RuntimeException
      * @return ImageInterface
@@ -336,7 +351,7 @@ interface ImageInterface extends IteratorAggregate, Countable
     /**
      * Adjust color contrast of the current image
      *
-     * @link https://image.intervention.io/v3/modifying/effects#changing-the-brightness
+     * @link https://image.intervention.io/v3/modifying/effects#changing-the-contrast
      * @param int $level
      * @throws RuntimeException
      * @return ImageInterface
@@ -424,17 +439,26 @@ interface ImageInterface extends IteratorAggregate, Countable
     public function rotate(float $angle, mixed $background = 'ffffff'): self;
 
     /**
-     * Draw text on image
+     * Rotate the image to be upright according to exif information
      *
-     * @ink https://image.intervention.io/v3/modifying/text-fonts
-     * @param string $text
-     * @param int $x
-     * @param int $y
-     * @param callable|FontInterface $font
+     * @link https://image.intervention.io/v3/modifying/effects#image-orientation-according-to-exif-data
      * @throws RuntimeException
      * @return ImageInterface
      */
-    public function text(string $text, int $x, int $y, callable|FontInterface $font): self;
+    public function orient(): self;
+
+    /**
+     * Draw text on image
+     *
+     * @link https://image.intervention.io/v3/modifying/text-fonts
+     * @param string $text
+     * @param int $x
+     * @param int $y
+     * @param callable|Closure|FontInterface $font
+     * @throws RuntimeException
+     * @return ImageInterface
+     */
+    public function text(string $text, int $x, int $y, callable|Closure|FontInterface $font): self;
 
     /**
      * Resize image to the given width and/or height
@@ -616,6 +640,16 @@ interface ImageInterface extends IteratorAggregate, Countable
     ): self;
 
     /**
+     * Trim the image by removing border areas of similar color within a the given tolerance
+     *
+     * @param int $tolerance
+     * @throws RuntimeException
+     * @throws AnimationException
+     * @return ImageInterface
+     */
+    public function trim(int $tolerance = 0): self;
+
+    /**
      * Place another image into the current image instance
      *
      * @link https://image.intervention.io/v3/modifying/inserting
@@ -672,11 +706,11 @@ interface ImageInterface extends IteratorAggregate, Countable
      * @link https://image.intervention.io/v3/modifying/drawing#drawing-a-rectangle
      * @param int $x
      * @param int $y
-     * @param callable $init
+     * @param callable|Closure|Rectangle $init
      * @throws RuntimeException
      * @return ImageInterface
      */
-    public function drawRectangle(int $x, int $y, callable $init): self;
+    public function drawRectangle(int $x, int $y, callable|Closure|Rectangle $init): self;
 
     /**
      * Draw ellipse on the current image
@@ -684,11 +718,11 @@ interface ImageInterface extends IteratorAggregate, Countable
      * @link https://image.intervention.io/v3/modifying/drawing#drawing-ellipses
      * @param int $x
      * @param int $y
-     * @param callable $init
+     * @param callable|Closure|Ellipse $init
      * @throws RuntimeException
      * @return ImageInterface
      */
-    public function drawEllipse(int $x, int $y, callable $init): self;
+    public function drawEllipse(int $x, int $y, callable|Closure|Ellipse $init): self;
 
     /**
      * Draw circle on the current image
@@ -696,42 +730,52 @@ interface ImageInterface extends IteratorAggregate, Countable
      * @link https://image.intervention.io/v3/modifying/drawing#drawing-a-circle
      * @param int $x
      * @param int $y
-     * @param callable $init
+     * @param callable|Closure|Circle $init
      * @throws RuntimeException
      * @return ImageInterface
      */
-    public function drawCircle(int $x, int $y, callable $init): self;
+    public function drawCircle(int $x, int $y, callable|Closure|Circle $init): self;
 
     /**
      * Draw a polygon on the current image
      *
      * @link https://image.intervention.io/v3/modifying/drawing#drawing-a-polygon
-     * @param callable $init
+     * @param callable|Closure|Polygon $init
      * @throws RuntimeException
      * @return ImageInterface
      */
-    public function drawPolygon(callable $init): self;
+    public function drawPolygon(callable|Closure|Polygon $init): self;
 
     /**
      * Draw a line on the current image
      *
      * @link https://image.intervention.io/v3/modifying/drawing#drawing-a-line
-     * @param callable $init
+     * @param callable|Closure|Line $init
      * @throws RuntimeException
      * @return ImageInterface
      */
-    public function drawLine(callable $init): self;
+    public function drawLine(callable|Closure|Line $init): self;
+
+    /**
+     * Draw a bezier curve on the current image
+     *
+     * @link https://image.intervention.io/v3/modifying/drawing#draw-bezier-curves
+     * @param callable|Closure|Bezier $init
+     * @throws RuntimeException
+     * @return ImageInterface
+     */
+    public function drawBezier(callable|Closure|Bezier $init): self;
 
     /**
      * Encode image to given media (mime) type. If no type is given the image
      * will be encoded to the format of the originally read image.
      *
      * @link https://image.intervention.io/v3/basics/image-output#encode-images-by-media-mime-type
-     * @param null|string $type
+     * @param null|string|MediaType $type
      * @throws RuntimeException
      * @return EncodedImageInterface
      */
-    public function encodeByMediaType(?string $type = null, ...$options): EncodedImageInterface;
+    public function encodeByMediaType(null|string|MediaType $type = null, mixed ...$options): EncodedImageInterface;
 
     /**
      * Encode the image into the format represented by the given extension. If no
@@ -739,11 +783,14 @@ interface ImageInterface extends IteratorAggregate, Countable
      * originally read image.
      *
      * @link https://image.intervention.io/v3/basics/image-output#encode-images-by-file-extension
-     * @param null|string $extension
+     * @param null|string|FileExtension $extension
      * @throws RuntimeException
      * @return EncodedImageInterface
      */
-    public function encodeByExtension(?string $extension = null, mixed ...$options): EncodedImageInterface;
+    public function encodeByExtension(
+        null|string|FileExtension $extension = null,
+        mixed ...$options
+    ): EncodedImageInterface;
 
     /**
      * Encode the image into the format represented by the given extension of

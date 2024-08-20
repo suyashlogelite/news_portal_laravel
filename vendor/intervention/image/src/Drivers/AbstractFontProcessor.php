@@ -30,14 +30,16 @@ abstract class AbstractFontProcessor implements FontProcessorInterface
 
         $x = $pivot->x();
         $y = $font->hasFilename() ? $pivot->y() + $this->capHeight($font) : $pivot->y();
-        $x_adjustment = 0;
+        $xAdjustment = 0;
 
+        // adjust line positions according to alignment
         foreach ($lines as $line) {
-            $line_width = $this->boxSize((string) $line, $font)->width();
-            $x_adjustment = $font->alignment() == 'left' ? 0 : $blockWidth - $line_width;
-            $x_adjustment = $font->alignment() == 'right' ? intval(round($x_adjustment)) : $x_adjustment;
-            $x_adjustment = $font->alignment() == 'center' ? intval(round($x_adjustment / 2)) : $x_adjustment;
-            $position = new Point($x + $x_adjustment, $y);
+            $lineBoxSize = $this->boxSize((string) $line, $font);
+            $lineWidth = $lineBoxSize->width() + $lineBoxSize->pivot()->x();
+            $xAdjustment = $font->alignment() == 'left' ? 0 : $blockWidth - $lineWidth;
+            $xAdjustment = $font->alignment() == 'right' ? intval(round($xAdjustment)) : $xAdjustment;
+            $xAdjustment = $font->alignment() == 'center' ? intval(round($xAdjustment / 2)) : $xAdjustment;
+            $position = new Point($x + $xAdjustment, $y);
             $position->rotate($font->angle(), $pivot);
             $line->setPosition($position);
             $y += $leading;
@@ -114,7 +116,7 @@ abstract class AbstractFontProcessor implements FontProcessorInterface
      * @param Line $line
      * @param FontInterface $font
      * @throws FontException
-     * @return array
+     * @return array<Line>
      */
     protected function wrapLine(Line $line, FontInterface $font): array
     {
@@ -124,27 +126,27 @@ abstract class AbstractFontProcessor implements FontProcessorInterface
         }
 
         $wrapped = [];
-        $formatedLine = new Line();
+        $formattedLine = new Line();
 
         foreach ($line as $word) {
-            // calculate width of newly formated line
-            $lineWidth = $this->boxSize(match ($formatedLine->count()) {
+            // calculate width of newly formatted line
+            $lineWidth = $this->boxSize(match ($formattedLine->count()) {
                 0 => $word,
-                default => (string) $formatedLine . ' ' . $word,
+                default => (string) $formattedLine . ' ' . $word,
             }, $font)->width();
 
             // decide if word fits on current line or a new line must be created
             if ($line->count() === 1 || $lineWidth <= $font->wrapWidth()) {
-                $formatedLine->add($word);
+                $formattedLine->add($word);
             } else {
-                if ($formatedLine->count()) {
-                    $wrapped[] = $formatedLine;
+                if ($formattedLine->count()) {
+                    $wrapped[] = $formattedLine;
                 }
-                $formatedLine = new Line($word);
+                $formattedLine = new Line($word);
             }
         }
 
-        $wrapped[] = $formatedLine;
+        $wrapped[] = $formattedLine;
 
         return $wrapped;
     }

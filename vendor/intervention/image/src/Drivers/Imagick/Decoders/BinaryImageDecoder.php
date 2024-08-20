@@ -7,11 +7,11 @@ namespace Intervention\Image\Drivers\Imagick\Decoders;
 use Imagick;
 use ImagickException;
 use Intervention\Image\Exceptions\DecoderException;
+use Intervention\Image\Format;
 use Intervention\Image\Interfaces\ColorInterface;
-use Intervention\Image\Interfaces\DecoderInterface;
 use Intervention\Image\Interfaces\ImageInterface;
 
-class BinaryImageDecoder extends ImagickImageDecoder implements DecoderInterface
+class BinaryImageDecoder extends NativeObjectDecoder
 {
     public function decode(mixed $input): ImageInterface|ColorInterface
     {
@@ -29,8 +29,13 @@ class BinaryImageDecoder extends ImagickImageDecoder implements DecoderInterface
         // decode image
         $image = parent::decode($imagick);
 
-        // extract exif data
-        $image->setExif($this->extractExifData($input));
+        // get media type enum from string media type
+        $format = Format::tryCreate($image->origin()->mediaType());
+
+        // extract exif data for appropriate formats
+        if (in_array($format, [Format::JPEG, Format::TIFF])) {
+            $image->setExif($this->extractExifData($input));
+        }
 
         return $image;
     }
